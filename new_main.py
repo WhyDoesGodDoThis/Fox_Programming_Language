@@ -1,36 +1,37 @@
+import sys
 class VM:
     def __init__(self):
         print("VM: Assembling")
         self.null = None
         self.instructions = {
-            b'\0x01': self.move,
-            b'\0x02': self.load,
-            b'\0x03': self.unload,
-            b'\0x04': self.set_reg,
-            b'\0x05': self.clear_reg,
-            b'\0x06': self.jmp,
-            b'\0x07': self.jel,
-            b'\0x08': self.jnl,
-            b'\0x09': self.jls,
-            b'\0x0a': self.jgr,
-            b'\0x0b': self.jll,
-            b'\0x0c': self.jgl,
-            b'\0x0d': self.section,
-            b'\0x0e': self.add,
-            b'\0x0f': self.sub,
-            b'\0x10': self.mul,
-            b'\0x11': self.div,
-            b'\0x12': self.pnt,
-            b'\0x13': self.sar,
-            b'\0x14': self.ssr,
-            b'\0x15': self.smr,
-            b'\0x16': self.sdr,
-            b'\0x17': self.null,
-            b'\0x18': self.null,
-            b'\0x19': self.null,
-            b'\0x1a': self.null,
-            b'\0x1b': self.null,
-            b'\0xfe': self.end
+            1: self.move,
+            2: self.load,
+            3: self.unload,
+            4: self.set_reg,
+            5: self.clear_reg,
+            6: self.jmp,
+            7: self.jel,
+            8: self.jnl,
+            9: self.jls,
+            10: self.jgr,
+            11: self.jll,
+            12: self.jgl,
+            13: self.section,
+            14: self.add,
+            15: self.sub,
+            16: self.mul,
+            17: self.div,
+            18: self.pnt,
+            19: self.sar,
+            20: self.ssr,
+            21: self.smr,
+            22: self.sdr,
+            23: self.null,
+            24: self.null,
+            25: self.null,
+            26: self.null,
+            27: self.null,
+            254: self.end
         }
         self.registers = {
             'a': [None, None], #default for add
@@ -165,6 +166,7 @@ class VM:
 
     #end runtime (not instruction)
     def end(self):
+        print("RunTime: Finished")
         self.runtime = False
     
     #delete main parts of VM (not instruction)
@@ -190,16 +192,20 @@ class VM:
         start = False
         for index, line in enumerate(code, start=1):
             line = bytearray(line)
-            if line[0] == b'\0x0d':
-                if line[1:] == b'S':
+            if line[0] == 6:
+                if line[1:] == b'Start':
                     start = True
-                self.section(line[1:], index)
+                self.section(line[1:].decode(), index)
         #runtime
+        if start:
+            self.runtime = True
+        else:
+            print(self.sections)
+            sys.exit()
         print("RunTime: Starting")
-        self.runtime = True
         while self.runtime:
             tline = code[self.linepointer]
-            lncmd = int(tline[0], 16)
+            lncmd = int(tline[0])
             if lncmd in (254, 18):
                 self.instructions[tline[0]]()
                 self.linepointer+=1
@@ -208,8 +214,22 @@ class VM:
                 self.instructions[tline[0]](tline[1:].decode())
                 self.linepointer+=1
                 continue
+            if lncmd == 1:
+                mov_args = tline[1:].split(b'\xee')
+                self.instructions[tline[0]](mov_args[1].decode(),mov_args[2].decode(),mov_args[3].decode())
+                self.linepointer+=1
+                continue
             self.linepointer+=1
 def preCompile(bytecode):
     code = bytearray(bytecode)
-    code = code.split(b'\0xff\0xff')
-    print(code)
+    code = code.split(b'\xff\xff')
+    return code
+    
+def Main():
+    vm = VM()
+    vm.RunTime(preCompile(open("main.foxbin", "rb").read()))
+    vm.delete()
+    del vm
+
+if __name__ == "__main__":
+    Main()
