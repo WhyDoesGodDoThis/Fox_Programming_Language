@@ -30,7 +30,7 @@ class VM:
             b'\0x19': self.null,
             b'\0x1a': self.null,
             b'\0x1b': self.null,
-            b'\0xff': self.end
+            b'\0xfe': self.end
         }
         self.registers = {
             'a': [None, None], #default for add
@@ -200,7 +200,7 @@ class VM:
         while self.runtime:
             tline = code[self.linepointer]
             lncmd = int(tline[0], 16)
-            if lncmd in (255, 18):
+            if lncmd in (254, 18):
                 self.instructions[tline[0]]()
                 self.linepointer+=1
                 continue
@@ -209,3 +209,7 @@ class VM:
                 self.linepointer+=1
                 continue
             self.linepointer+=1
+def preCompile(bytecode):
+    code = bytearray(bytecode)
+    code = code.split(b'\0xff\0xff')
+    print(code)
