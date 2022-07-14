@@ -73,7 +73,7 @@ class VM(Frame):
         self.varibles = {}
         self.sections = {}
         self.linepointer = 0
-        self.tline = None
+        self.runtime = False
         print("VM: Assembled")
 
     #configues window
@@ -87,7 +87,7 @@ class VM(Frame):
 
         file = Menu(menu)
         file.add_command(label="Exit", command=self.client_exit)
-        menu.add_cascade(label="File", menu=file)
+        menu.add_cascade(label="Options", menu=file)
         menu.configure(background='black')
         menu.configure(foreground='white')
 
@@ -107,7 +107,7 @@ class VM(Frame):
         del self.sections
         print("VM: Disassembed")
         
-    #print to window (1) (first instruction)
+    #print to window (1)
     def print(self):
         self.lines.append(Label(self, text=str(self.registers["p"][0]), fg="white", bg="black"))
         self.lines[-1].pack(anchor='w', side= TOP)
@@ -175,11 +175,24 @@ class VM(Frame):
     #cycles first item in stack to the back of the stack (16)
     def cycleStack(self):
         self.stack.append(self.stack.pop(0))
-        
-
-root = Tk()
-root.geometry("400x300")
-app = VM(root)
-app.print()
-root.protocol("WM_DELETE_WINDOW", root.iconify)
-root.mainloop()
+    #Main RunTime
+    def Runtime(self, code_list):
+        print("PreRunTimeChecker: Starting")
+        for index, line in enumerate(code_list):
+            if line[0] == b'\x08':
+                if line[1:] == b'S':
+                    self.runtime = True
+                    self.new_section("S", index+1)
+                    continue
+                self.new_section(line[1:], index)
+        print("PreRunTimeChecker: Finished")
+def Main():
+    root = Tk()
+    root.geometry("400x300")
+    app = VM(root)
+    app.print()
+    root.protocol("WM_DELETE_WINDOW", root.iconify)
+    root.mainloop()
+    
+if __name__ == "__main__":
+    Main()
