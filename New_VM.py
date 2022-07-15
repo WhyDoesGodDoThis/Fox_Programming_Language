@@ -1,6 +1,4 @@
 from tkinter import *
-from tkinter import messagebox
-import sys
 import struct
 
 class VM(Frame):
@@ -138,7 +136,7 @@ class VM(Frame):
         self.stack.insert(0, variable)
     #unloads a varible from the stack (5)
     def unload(self, variable):
-        variable = vaiable.decode()
+        variable = variable.decode()
         if variable not in self.stack:
             pass
         self.stack.pop(self.stack.index(variable))
