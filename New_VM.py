@@ -129,7 +129,6 @@ class VM(Frame):
             value = value.decode()
         if type_ == 227:
             value = float(struct.unpack('>f', bytes(value)))
-        print(value)
         self.varibles[self.stack[0]] = value
     #loads a variable to top of stack (4)
     def load(self, variable):
