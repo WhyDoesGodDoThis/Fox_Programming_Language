@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import messagebox
 import sys
+import struct
 
 class VM(Frame):
     #initalizes the VM
@@ -13,32 +14,32 @@ class VM(Frame):
         self.master.configure(background='black')
         self.lines = []
         self.instructions = {
-            b'\x01': self.print,
-            b'\x02': self.make,
-            b'\x03': self.move,
-            b'\x04': self.load,
-            b'\x05': self.unload,
-            b'\x06': self.set_register,
-            b'\x07': self.read_register,
-            b'\x08': self.new_section,
-            b'\x09': self.jump,
-            b'\x0a': self.jump_equal,
-            b'\x0b': self.jump_notequal,
-            b'\x0c': self.jump_less,
-            b'\x0d': self.jump_greater,
-            b'\x0e': self.jump_lessor,
-            b'\x0f': self.jump_greateror,
-            b'\x10': self.cycleStack,
-            b'\x11': self.nul,
-            b'\x12': self.nul,
-            b'\x13': self.nul,
-            b'\x14': self.nul,
-            b'\x15': self.nul,
-            b'\x16': self.nul,
-            b'\x17': self.nul,
-            b'\x18': self.nul,
-            b'\x19': self.nul,
-            b'\x1a': self.nul
+            1: self.print,
+            2: self.make,
+            3: self.move,
+            4: self.load,
+            5: self.unload,
+            6: self.set_register,
+            7: self.read_register,
+            8: self.new_section,
+            9: self.jump,
+            10: self.jump_equal,
+            11: self.jump_notequal,
+            12: self.jump_less,
+            13: self.jump_greater,
+            14: self.jump_lessor,
+            15: self.jump_greateror,
+            16: self.cycleStack,
+            17: self.nul,
+            18: self.nul,
+            19: self.nul,
+            20: self.nul,
+            21: self.nul,
+            22: self.nul,
+            23: self.nul,
+            24: self.nul,
+            25: self.nul,
+            26: self.nul
         }
         self.registers = {
             'a': [None, None],
@@ -113,23 +114,29 @@ class VM(Frame):
         self.lines[-1].pack(anchor='w', side= TOP)
     #makes a varible (2)
     def make(self, variable):
-        self.varibles[variable.decode()] = None
+        self.varibles[str(variable.decode())] = None
     #move value to varible at top of stack (3)
     def move(self, value):
         type_ = value[-1]
-        if type_ == b'\xe1':
-            value = int(value[0:len(value)-1])
-        if type_ == b'\xe2':
-            value = str(value[0:len(value)-1].decode())
-        if type_ == b'\xe3':
-            value = float(value[0:len(value)-1])
+        for i in (225, 226, 227):
+            try:
+                value.pop(value.index(i))
+            except ValueError:
+                pass
+        if type_ == 225:
+            value = int.from_bytes(value, "big")
+        if type_ == 226:
+            value = value.decode()
+        if type_ == 227:
+            value = float(struct.unpack('>f', bytes(value)))
+        print(value)
         self.varibles[self.stack[0]] = value
     #loads a variable to top of stack (4)
     def load(self, variable):
-        variable = vaiable.decode()
+        variable = variable.decode()
         if variable in self.stack:
             self.stack.pop(self.stack.index(variable))
-        self.stack.insert(0, varible)
+        self.stack.insert(0, variable)
     #unloads a varible from the stack (5)
     def unload(self, variable):
         variable = vaiable.decode()
@@ -138,10 +145,10 @@ class VM(Frame):
         self.stack.pop(self.stack.index(variable))
     #sets register value of variable in top of stack (6)
     def set_register(self, register):
-        self.registers[str(register[0].decode())][int(register[1])] = self.varibles[self.stack[0]] 
+        self.registers[chr(register[0])][int(register[1])] = self.varibles[self.stack[0]] 
     #read register to the variable at the top of stack (7)
     def read_register(self, register):
-        self.varibles[self.stack[0]] = self.registers[str(register[0].decode())][int(register[1])]
+        self.varibles[self.stack[0]] = self.registers[chr(register[0])][int(register[1])]
     #addes a new section to sections (8)
     def new_section(self, sectionName, line):
         self.sections[str(sectionName.decode())] = line
@@ -175,22 +182,45 @@ class VM(Frame):
     #cycles first item in stack to the back of the stack (16)
     def cycleStack(self):
         self.stack.append(self.stack.pop(0))
+        
     #Main RunTime
     def Runtime(self, code_list):
         print("PreRunTimeChecker: Starting")
         for index, line in enumerate(code_list):
-            if line[0] == b'\x08':
+            if int(line[0]) == 8:
                 if line[1:] == b'S':
                     self.runtime = True
-                    self.new_section("S", index+1)
+                    self.new_section(b"S", index+1)
                     continue
                 self.new_section(line[1:], index)
+        if not self.runtime:
+            print("PreRunTimeChecker Error: ee")
+            self.client_exit()
         print("PreRunTimeChecker: Finished")
+        print("Runtime: Starting")
+        while self.runtime:
+            tline = code_list[self.linepointer]
+            instr = int(tline[0])
+            if instr in (16, 1):
+                self.instructions[tline[0]]()
+                self.linepointer += 1
+                continue
+            if instr == 8:
+                self.linepointer += 1
+                continue
+            if instr in (2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15):
+                self.instructions[tline[0]](tline[1:len(tline)])
+                self.linepointer += 1
+                continue
+            if instr == 254:
+                print("Runtime: Finished")
+                self.runtime = False
+
 def Main():
     root = Tk()
-    root.geometry("400x300")
+    root.geometry("500x375")
     app = VM(root)
-    app.print()
+    app.Runtime(bytearray(open("main.foxbin", 'rb').read()).split(b'\xff'))
     root.protocol("WM_DELETE_WINDOW", root.iconify)
     root.mainloop()
     
