@@ -217,7 +217,7 @@ def Main():
     root = Tk()
     root.geometry("500x375")
     app = VM(root)
-    app.Runtime(bytearray(open("main.foxbin", 'rb').read()).split(b'\xff'))
+    app.Runtime(bytearray(open("a", 'rb').read()).split(b'\xff'))
     root.protocol("WM_DELETE_WINDOW", root.iconify)
     root.mainloop()
     
