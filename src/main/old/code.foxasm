@@ -1,0 +1,6 @@
+_Start:
+    mov 2, reg_a0
+    mov 3, reg_a1
+    add a, h
+    pnt h
+    end

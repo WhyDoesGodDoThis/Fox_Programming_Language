@@ -28,7 +28,7 @@ def compiler(file_name):
     #this opens the file
     with open(file_name, 'r') as file:
         #this goes through each line
-        for line in file:
+        for index, line in enumerate(file, 1):
             #this skips the line if it is a comment
             if line.startswith("#") or line.strip() == '' or line.strip().startswith('#'):
                 continue
@@ -45,7 +45,7 @@ def compiler(file_name):
             if line[0].count("_") == 0:
                 #Unknown command error handling
                 if line[0] not in convert:
-                    print("Compiler Error: Invalid Command on line", len(out_code)+1)
+                    print("Compiler Error: Invalid Command on line", index, line)
                     sys.exit()
                 #this converts the command to a number
                 line[0] = convert[line[0]]
@@ -299,7 +299,7 @@ def Main():
     try:
         compiled_code = compiler(sys.argv[1])
     except:
-        compiled_code = compiler("code.foxasm")
+        compiled_code = compiler("src\main\old\code.foxasm")
     fox = vm()
     fox.RunTime(compiled_code)
     fox.delete()

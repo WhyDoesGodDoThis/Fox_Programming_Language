@@ -1,1 +1,1 @@
-python3 src/main/compiler.py
+python3 src/main/old/main.py
