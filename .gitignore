@@ -1,1 +1,3 @@
 src/main/__pycache__
+*.jar
+*.class

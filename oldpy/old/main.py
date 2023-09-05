@@ -299,7 +299,7 @@ def Main():
     try:
         compiled_code = compiler(sys.argv[1])
     except:
-        compiled_code = compiler("src\main\old\code.foxasm")
+        compiled_code = compiler("old\code.foxasm")
     fox = vm()
     fox.RunTime(compiled_code)
     fox.delete()
